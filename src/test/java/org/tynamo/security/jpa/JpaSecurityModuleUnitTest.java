@@ -311,6 +311,25 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 		interceptor.getTransaction().commit();
 	}
 
+	@Test
+	public void persistPlayerOfTeamProtectedByAssociation() {
+		delegate.getTransaction().begin();
+		TestOwnerEntity owner = new TestOwnerEntity();
+		owner.setId(1L);
+		delegate.persist(owner);
+		Team team = new Team();
+		team.setOwner(owner);
+		delegate.persist(team);
+		delegate.getTransaction().commit();
+
+		mockSubject(1L);
+		Player player = new Player();
+		player.setTeam(team);
+		interceptor.getTransaction().begin();
+		interceptor.persist(player);
+		interceptor.getTransaction().commit();
+	}
+
 	@Entity(name = "RoleWriteProtectedEntity")
 	@RequiresRole(value = "owner", operations = Operation.WRITE)
 	public static class RoleWriteProtectedEntity {

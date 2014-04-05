@@ -345,15 +345,19 @@ public class SecureEntityManager implements EntityManager {
 		Metamodel metamodel = delegate.getMetamodel();
 		EntityType entityType = metamodel.entity(entity.getClass());
 		// empty association value indicates association to "self"
-		Object associatedObject;
-		if (requiredAssociationValue.isEmpty()) associatedObject = entity;
-		else {
-			Attribute association = entityType.getAttribute(requiredAssociationValue);
-			entityType = metamodel.entity(association.getJavaType());
-			associatedObject = propertyAccess.get(entity, requiredAssociationValue);
-			if (associatedObject == null)
-				throw new EntitySecurityException("Subject for the required association is not set when executing "
-					+ writeOperation + " on instance '" + entity + "' of type " + entity.getClass().getSimpleName());
+		Object associatedObject = entity;
+		if (!requiredAssociationValue.isEmpty()) {
+			// find the top entity by traversing the property path
+			String[] associationAttributes = String.valueOf(requiredAssociationValue).split("\\.");
+			for (String attributeName : associationAttributes) {
+				Attribute attribute = entityType.getAttribute(attributeName);
+				// TODO handle if !attribute.isAssociation()
+				entityType = metamodel.entity(attribute.getJavaType());
+				associatedObject = propertyAccess.get(associatedObject, attributeName);
+				if (associatedObject == null)
+					throw new EntitySecurityException("Subject for the required association is not set when executing "
+						+ writeOperation + " on instance '" + entity + "' of type " + entity.getClass().getSimpleName());
+			}
 		}
 
 		Type idType = entityType.getIdType();
