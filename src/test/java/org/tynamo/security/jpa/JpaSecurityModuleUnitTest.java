@@ -37,6 +37,8 @@ import org.tynamo.security.jpa.annotations.RequiresAssociation;
 import org.tynamo.security.jpa.annotations.RequiresRole;
 import org.tynamo.security.jpa.internal.SecureEntityManager;
 import org.tynamo.security.jpa.testapp.entities.AdminOnly;
+import org.tynamo.security.jpa.testapp.entities.Player;
+import org.tynamo.security.jpa.testapp.entities.Team;
 import org.tynamo.security.jpa.testapp.entities.Unsecured;
 import org.tynamo.security.services.SecurityModule;
 import org.tynamo.security.services.SecurityService;
@@ -86,8 +88,11 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 	public void clearDb() {
 		if (delegate.getTransaction().isActive()) delegate.getTransaction().rollback();
 		delegate.getTransaction().begin();
+		delegate.createQuery("DELETE FROM Player").executeUpdate();
+		delegate.createQuery("DELETE FROM Team").executeUpdate();
 		delegate.createQuery("DELETE FROM TestEntity m").executeUpdate();
 		delegate.createQuery("DELETE FROM TestOwnerEntity t").executeUpdate();
+		delegate.createQuery("DELETE FROM User").executeUpdate();
 		delegate.getTransaction().commit();
 	}
 
@@ -134,6 +139,26 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 		entity = interceptor.find(TestEntity.class, 1L);
 		assertNotNull(entity);
 	}
+
+	@Test
+	public void secureFindPlayerOfTeam() {
+		delegate.getTransaction().begin();
+		TestOwnerEntity owner = new TestOwnerEntity();
+		owner.setId(1L);
+		delegate.persist(owner);
+		Team team = new Team();
+		team.setOwner(owner);
+		delegate.persist(team);
+		Player player = new Player();
+		player.setTeam(team);
+		delegate.persist(player);
+		delegate.getTransaction().commit();
+		mockSubject(1L);
+
+		player = interceptor.find(Player.class, player.getId());
+		assertNotNull(player);
+	}
+
 
 	@Test
 	public void unsecurePersistAndFind() {

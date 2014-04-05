@@ -3,7 +3,7 @@ package org.tynamo.security.jpa.internal;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
@@ -68,16 +68,23 @@ public class SecureFindAdvice implements MethodAdvice {
 			idAttr = entityType.getId(idType.getJavaType());
 			predicate1 = builder.equal(from.get(idAttr.getName()), invocation.getParameter(1));
 		}
-		Attribute association = entityType.getAttribute(requiredAssociationValue);
-		// TODO handle if !association.isAssociation()
-		entityType = metamodel.entity(association.getJavaType());
+
+		String[] associationAttributes = String.valueOf(requiredAssociationValue).split("\\.");
+		Path<?> path = null;
+		// find the type of the top entity while traversing the property path
+		for (String attributeName : associationAttributes) {
+			path = path == null ? from.get(attributeName) : path.get(attributeName);
+			Attribute attribute = entityType.getAttribute(attributeName);
+			// TODO handle if !attribute.isAssociation()
+			entityType = metamodel.entity(attribute.getJavaType());
+		}
+
 		idType = entityType.getIdType();
 		idAttr = entityType.getId(idType.getJavaType());
 
-		Join<Object, Object> join = from.join(requiredAssociationValue);
 		// TODO handle subject == null
 		// TODO allow configuring the principal for it rather than using primary
-		Predicate predicate2 = builder.equal(join.get(idAttr.getName()), securityService.getSubject().getPrincipals()
+		Predicate predicate2 = builder.equal(path.get(idAttr.getName()), securityService.getSubject().getPrincipals()
 			.getPrimaryPrincipal());
 		criteriaQuery.where(predicate1 == null ? predicate2 : builder.and(predicate1, predicate2));
 		invocation.setReturnValue(entityManager.createQuery(criteriaQuery).getSingleResult());

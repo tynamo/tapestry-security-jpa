@@ -19,7 +19,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
@@ -283,16 +283,22 @@ public class SecureEntityManager implements EntityManager {
 			if (entityId == null) entityId = principal;
 			else if (!entityId.equals(principal)) return null;
 		} else {
-			Attribute association = entityType.getAttribute(requiredAssociationValue);
-			// TODO handle if !association.isAssociation()
-			entityType = metamodel.entity(association.getJavaType());
+			String[] associationAttributes = String.valueOf(requiredAssociationValue).split("\\.");
+			Path<?> path = null;
+			// find the type of the top entity while traversing the property path
+			for (String attributeName : associationAttributes) {
+				path = path == null ? from.get(attributeName) : path.get(attributeName);
+				Attribute attribute = entityType.getAttribute(attributeName);
+				// TODO handle if !attribute.isAssociation()
+				entityType = metamodel.entity(attribute.getJavaType());
+			}
+
 			idType = entityType.getIdType();
 			idAttr = entityType.getId(idType.getJavaType());
 
-			Join<Object, Object> join = from.join(requiredAssociationValue);
 			// TODO handle subject == null
 			// TODO allow configuring the principal for it rather than using primary
-			predicate2 = builder.equal(join.get(idAttr.getName()), principal);
+			predicate2 = builder.equal(path.get(idAttr.getName()), principal);
 		}
 
 		Predicate predicate1 = null;
