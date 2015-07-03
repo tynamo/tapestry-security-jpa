@@ -1,0 +1,4 @@
+org.tynamo.security.jpa
+org.tynamo.security.jpa.testapp.entities
+org.tynamo.security.jpa.testapp.pages
+org.tynamo.security.jpa.testapp.services

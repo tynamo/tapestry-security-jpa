@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>SecureWriteAdvice xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/tynamo/security/jpa/internal/SecureWriteAdvice.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.tynamo.security.jpa.internal;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> javax.persistence.EntityManager;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> javax.persistence.metamodel.Attribute;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> javax.persistence.metamodel.EntityType;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> javax.persistence.metamodel.Metamodel;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> javax.persistence.metamodel.SingularAttribute;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> javax.persistence.metamodel.Type;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> javax.servlet.http.HttpServletRequest;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.apache.tapestry5.ioc.services.PropertyAccess;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.apache.tapestry5.plastic.MethodAdvice;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.apache.tapestry5.plastic.MethodInvocation;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.tynamo.security.jpa.EntitySecurityException;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.tynamo.security.jpa.annotations.Operation;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.tynamo.security.services.SecurityService;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  @Deprecated
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/tynamo/security/jpa/internal/SecureWriteAdvice.html">SecureWriteAdvice</a> <strong class="jxr_keyword">implements</strong> MethodAdvice {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> SecurityService securityService;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> HttpServletRequest request;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> PropertyAccess propertyAccess;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../org/tynamo/security/jpa/annotations/Operation.html">Operation</a> writeOperation;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../../org/tynamo/security/jpa/internal/SecureWriteAdvice.html">SecureWriteAdvice</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../../org/tynamo/security/jpa/annotations/Operation.html">Operation</a> writeOperation, <strong class="jxr_keyword">final</strong> SecurityService securityService,
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  		<strong class="jxr_keyword">final</strong> HttpServletRequest request, <strong class="jxr_keyword">final</strong> PropertyAccess propertyAccess) {
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  		<strong class="jxr_keyword">if</strong> (!Operation.INSERT.equals(writeOperation) &amp;&amp; !Operation.UPDATE.equals(writeOperation)
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  			&amp;&amp; !Operation.DELETE.equals(writeOperation))
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"The targeted writeOperation must be one of INSERT, UPDATE, DELETE but was "</span>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  				+ writeOperation);
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  		<strong class="jxr_keyword">this</strong>.writeOperation = writeOperation;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  		<strong class="jxr_keyword">this</strong>.securityService = securityService;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  		<strong class="jxr_keyword">this</strong>.request = request;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  		<strong class="jxr_keyword">this</strong>.propertyAccess = propertyAccess;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  	}
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  	@SuppressWarnings({ <span class="jxr_string">"unchecked"</span>, <span class="jxr_string">"rawtypes"</span> })
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  	@Override
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> advise(MethodInvocation invocation) {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  		Object entity = invocation.getParameter(0);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  		String requiredRoleValue = RequiresAnnotationUtil.getRequiredRole(entity.getClass(), writeOperation);
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  		<strong class="jxr_keyword">if</strong> (requiredRoleValue != <strong class="jxr_keyword">null</strong> &amp;&amp; request.isUserInRole(requiredRoleValue)) {
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  			invocation.proceed();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  		}
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  		String requiredAssociationValue = RequiresAnnotationUtil.getRequiredAssociation(entity.getClass(), writeOperation);
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  		<strong class="jxr_keyword">if</strong> (requiredAssociationValue == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  			<em class="jxr_comment">// proceed as normal if there's neither RequiresRole nor RequiresAssociation, throw an exception if role didn't match</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  			<strong class="jxr_keyword">if</strong> (requiredRoleValue == <strong class="jxr_keyword">null</strong>) invocation.proceed();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  			<strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/tynamo/security/jpa/EntitySecurityException.html">EntitySecurityException</a>(<span class="jxr_string">"Currently executing subject is not permitted to "</span> + writeOperation
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  				+ <span class="jxr_string">" entities of type "</span> + entity.getClass().getSimpleName());
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  		}
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  		EntityManager entityManager = (EntityManager) invocation.getInstance();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  		<em class="jxr_comment">// FIXME handle empty value, i.e. association to "self"</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  		Object associatedObject = propertyAccess.get(entity, requiredAssociationValue);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  		Metamodel metamodel = entityManager.getMetamodel();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  		EntityType entityType = metamodel.entity(entity.getClass());
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  		Attribute association = entityType.getAttribute(requiredAssociationValue);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  		entityType = metamodel.entity(association.getJavaType());
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  		Type idType = entityType.getIdType();
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  		SingularAttribute idAttr = entityType.getId(idType.getJavaType());
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  		<strong class="jxr_keyword">if</strong> (!propertyAccess.get(associatedObject, idAttr.getName()).equals(
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  			securityService.getSubject().getPrincipals().getPrimaryPrincipal())) { <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> EntitySecurityException(
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  			<span class="jxr_string">"Currently executing subject is not permitted to "</span> + writeOperation + <span class="jxr_string">" entities of type "</span>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  				+ entity.getClass().getSimpleName() + <span class="jxr_string">" because the required association didn't exist"</span>); }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  		invocation.proceed();
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  	}
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2004&#x2013;2015. All rights reserved.</div>
+</body>
+</html>
