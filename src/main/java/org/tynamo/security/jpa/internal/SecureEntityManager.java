@@ -297,7 +297,6 @@ public class SecureEntityManager implements EntityManager {
 			idAttr = entityType.getId(idType.getJavaType());
 
 			// TODO handle subject == null
-			// TODO allow configuring the principal for it rather than using primary
 			predicate2 = builder.equal(path.get(idAttr.getName()), principal);
 		}
 
