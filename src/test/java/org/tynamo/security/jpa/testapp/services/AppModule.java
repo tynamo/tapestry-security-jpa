@@ -66,7 +66,7 @@ public class AppModule {
 		configuration.add("myData", myData);
 	}
 
-	public void contributeExceptionHandler(MappedConfiguration<Class, Object> configuration) {
+	public void contributeRequestExceptionHandler(MappedConfiguration<Class, Object> configuration) {
 		configuration.add(EntitySecurityException.class, NoPermissions.class);
 	}
 

@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.tynamo</groupId>
 		<artifactId>tynamo-parent</artifactId>
-		<version>0.2.1</version>
+		<version>0.2.2</version>
 	</parent>
 
 	<properties>
@@ -37,19 +37,54 @@
 			<groupId>org.apache.tapestry</groupId>
 			<artifactId>tapestry-test</artifactId>
 			<version>${tapestry-release-version}</version>
-			<scope>provided</scope>
+			<scope>test</scope>
+			<!-- need to exclude several dependencies because tynamo-test uses newer versions -->
+			<exclusions>
+				<exclusion>
+					<artifactId>jetty-jndi</artifactId>
+					<groupId>org.eclipse.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty-server</artifactId>
+					<groupId>org.eclipse.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>servlet-api-2.5</artifactId>
+					<groupId>org.mortbay.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>servlet-api</artifactId>
+					<groupId>org.apache.tomcat</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty-repacked</artifactId>
+					<groupId>org.seleniumhq.selenium</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty-rc-repacked</artifactId>
+					<groupId>org.seleniumhq.selenium</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty-webapp</artifactId>
+					<groupId>org.eclipse.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jetty-plus</artifactId>
+					<groupId>org.eclipse.jetty</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tapestry</groupId>
 			<artifactId>tapestry-ioc</artifactId>
 			<version>${tapestry-release-version}</version>
-			<scope>provided</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tapestry</groupId>
 			<artifactId>tapestry-json</artifactId>
 			<version>${tapestry-release-version}</version>
-			<scope>provided</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tapestry</groupId>
@@ -66,12 +101,6 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -95,6 +124,12 @@
 			<version>0.1.6</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.tynamo</groupId>
+			<artifactId>tynamo-test</artifactId>
+			<version>0.1.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -108,6 +143,31 @@
 							<Tapestry-Module-Classes>org.tynamo.security.jpa.JpaSecurityModule</Tapestry-Module-Classes>
 						</manifestEntries>
 					</archive>
+				</configuration>
+			</plugin>
+			<!-- run the test app in the port 8180 with "mvn jetty:run" -->
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>9.2.4.v20141103</version>
+				<configuration>
+					<contextPath>/</contextPath>
+					<useTestClasspath>true</useTestClasspath>
+					<webAppSourceDirectory>${basedir}/src/test/webapp</webAppSourceDirectory>
+					<systemProperties>
+						<systemProperty>
+							<name>jetty.port</name>
+							<value>8180</value>
+						</systemProperty>
+						<systemProperty>
+							<name>tapestry.compress-whitespace</name>
+							<value>false</value>
+						</systemProperty>
+						<systemProperty>
+							<name>tapestry.production-mode</name>
+							<value>false</value>
+						</systemProperty>
+					</systemProperties>
 				</configuration>
 			</plugin>
 		</plugins>
