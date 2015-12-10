@@ -60,10 +60,17 @@ public class JpaSecurityModuleIntegrationTest extends AbstractContainerTest
 
 	@Test
 	public void insertAdminOnlyAsGuest() throws Exception {
-		//clickOnLinkById("signinasuser");
 		clickOnLinkById("insertAdminOnly");
 		assertTrue(getTitle().contains("no permissions"));
 	}
+
+	@Test
+	public void insertAdminOnlyAsUser() throws Exception {
+		clickOnLinkById("signinasuser");
+		clickOnLinkById("insertAdminOnly");
+		assertTrue(getTitle().contains("no permissions"));
+	}
+
 
 
 	private String getAttribute(String id, String attr)

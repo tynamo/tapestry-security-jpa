@@ -88,6 +88,8 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 	public void clearDb() {
 		if (delegate.getTransaction().isActive()) delegate.getTransaction().rollback();
 		delegate.getTransaction().begin();
+		delegate.createQuery("DELETE FROM MyData").executeUpdate();
+		delegate.createQuery("DELETE FROM AdminOnly").executeUpdate();
 		delegate.createQuery("DELETE FROM Player").executeUpdate();
 		delegate.createQuery("DELETE FROM Team").executeUpdate();
 		delegate.createQuery("DELETE FROM TestEntity m").executeUpdate();
