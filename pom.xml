@@ -15,7 +15,7 @@
 	</parent>
 
 	<properties>
-		<tapestry-release-version>5.4-beta-26</tapestry-release-version>
+		<tapestry-release-version>5.4-rc-1</tapestry-release-version>
 	</properties>
 
 	<scm>
@@ -87,12 +87,12 @@
 		<dependency>
 			<groupId>org.tynamo</groupId>
 			<artifactId>tapestry-security</artifactId>
-			<version>0.6.0</version>
+			<version>0.6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tynamo</groupId>
 			<artifactId>tapestry-jpa-seedentity</artifactId>
-			<version>0.1.1</version>
+			<version>0.1.6</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
