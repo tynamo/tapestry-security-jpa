@@ -9,7 +9,7 @@ import javax.persistence.ManyToOne;
 import org.tynamo.security.jpa.annotations.Operation;
 import org.tynamo.security.jpa.annotations.RequiresAssociation;
 
-@RequiresAssociation(value = "owner", operations = Operation.UPDATE)
+@RequiresAssociation(value = "owner", operations = Operation.ANY)
 @Entity
 public class MyData {
 

@@ -1,5 +1,5 @@
-<html title="security-jpa: No permissions" xmlns:t="http://tapestry.apache.org/schema/tapestry_5_3.xsd" xmlns:p="tapestry:parameter">
-	<head></head>
+<html xmlns:t="http://tapestry.apache.org/schema/tapestry_5_3.xsd" xmlns:p="tapestry:parameter">
+	<head><title>Security-jpa error: no permissions</title></head>
 	<body>
 		Sorry, you don't have permissions to execute this database operation
 	</body>

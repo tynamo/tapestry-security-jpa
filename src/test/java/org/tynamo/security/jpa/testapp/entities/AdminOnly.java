@@ -15,6 +15,8 @@ public class AdminOnly {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 
+	private String text;
+
 	// @ManyToOne
 	// private TestOwnerEntity owner;
 	//
@@ -28,6 +30,14 @@ public class AdminOnly {
 
 	public Long getId() {
 		return id;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
 	}
 
 }

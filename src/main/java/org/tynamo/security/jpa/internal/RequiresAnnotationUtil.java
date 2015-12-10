@@ -12,9 +12,9 @@ public abstract class RequiresAnnotationUtil {
 
 		for (Operation requiredOperation : annotation.operations()) {
 			if (Operation.ANY.equals(requiredOperation) || operation.equals(requiredOperation)) return annotation.value();
-			if (Operation.WRITE.equals(requiredOperation))
-				if (Operation.INSERT.equals(operation) || Operation.UPDATE.equals(operation)
-					|| Operation.DELETE.equals(operation)) return annotation.value();
+			if (Operation.WRITE.equals(operation))
+				if (Operation.INSERT.equals(requiredOperation) || Operation.UPDATE.equals(requiredOperation)
+					|| Operation.DELETE.equals(requiredOperation)) return annotation.value();
 		}
 		return null;
 	}
@@ -25,9 +25,9 @@ public abstract class RequiresAnnotationUtil {
 
 		for (Operation requiredOperation : annotation.operations()) {
 			if (Operation.ANY.equals(requiredOperation) || operation.equals(requiredOperation)) return annotation.value();
-			if (Operation.WRITE.equals(requiredOperation))
-				if (Operation.INSERT.equals(operation) || Operation.UPDATE.equals(operation)
-					|| Operation.DELETE.equals(operation)) return annotation.value();
+			if (Operation.WRITE.equals(operation))
+				if (Operation.INSERT.equals(requiredOperation) || Operation.UPDATE.equals(requiredOperation)
+					|| Operation.DELETE.equals(requiredOperation)) return annotation.value();
 		}
 		return null;
 	}
