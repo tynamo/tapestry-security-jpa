@@ -92,7 +92,7 @@
 		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>eclipselink</artifactId>
-			<version>2.5.1</version>
+			<version>2.7.4</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- slightly annoyingly, we need to use the jetty originated servlet-api because the jars are signed -->
