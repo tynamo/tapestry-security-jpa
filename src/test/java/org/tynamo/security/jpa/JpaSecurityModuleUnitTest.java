@@ -4,6 +4,9 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -37,9 +40,11 @@ import org.tynamo.security.jpa.annotations.RequiresAssociation;
 import org.tynamo.security.jpa.annotations.RequiresRole;
 import org.tynamo.security.jpa.internal.SecureEntityManager;
 import org.tynamo.security.jpa.testapp.entities.AdminOnly;
+import org.tynamo.security.jpa.testapp.entities.Event;
 import org.tynamo.security.jpa.testapp.entities.Player;
 import org.tynamo.security.jpa.testapp.entities.Team;
 import org.tynamo.security.jpa.testapp.entities.Unsecured;
+import org.tynamo.security.jpa.testapp.entities.User;
 import org.tynamo.security.services.SecurityModule;
 import org.tynamo.security.services.SecurityService;
 
@@ -94,6 +99,7 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 		delegate.createQuery("DELETE FROM Team").executeUpdate();
 		delegate.createQuery("DELETE FROM TestEntity m").executeUpdate();
 		delegate.createQuery("DELETE FROM TestOwnerEntity t").executeUpdate();
+		delegate.createQuery("DELETE FROM Event e").executeUpdate();
 		delegate.createQuery("DELETE FROM User").executeUpdate();
 		delegate.getTransaction().commit();
 	}
@@ -105,7 +111,7 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 		registry = null;
 	}
 
-	private void mockSubject(Long principalId) {
+	private void mockSubject(Object principalId) {
 		Subject subject = mock(Subject.class);
 		when(subject.isAuthenticated()).thenReturn(true);
 		PrincipalCollection principalCollection = mock(PrincipalCollection.class);
@@ -161,6 +167,27 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 		assertNotNull(player);
 	}
 
+	@Test
+	public void secureFindEvent() {
+		delegate.getTransaction().begin();
+
+		User manager = new User();
+		manager.setId("1");
+		delegate.persist(manager);
+
+		Event event = new Event();
+		event.setValue("testevent");
+		List<User> managers = new ArrayList<User>();
+		managers.add(manager);
+		event.setManagers(managers);
+		delegate.persist(event);
+
+		delegate.getTransaction().commit();
+		mockSubject(1L);
+
+		event = interceptor.find(Event.class, event.getId());
+		assertNotNull(event);
+	}
 
 	@Test
 	public void unsecurePersistAndFind() {

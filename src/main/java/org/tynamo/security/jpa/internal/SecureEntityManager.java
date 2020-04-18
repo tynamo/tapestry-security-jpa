@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.EntityTransaction;
 import javax.persistence.FlushModeType;
 import javax.persistence.GeneratedValue;
@@ -25,6 +26,7 @@ import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.Metamodel;
+import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 import javax.servlet.http.HttpServletRequest;
@@ -285,12 +287,18 @@ public class SecureEntityManager implements EntityManager {
 		} else {
 			String[] associationAttributes = String.valueOf(requiredAssociationValue).split("\\.");
 			Path<?> path = null;
+			
 			// find the type of the top entity while traversing the property path
 			for (String attributeName : associationAttributes) {
 				path = path == null ? from.get(attributeName) : path.get(attributeName);
 				Attribute attribute = entityType.getAttribute(attributeName);
-				// TODO handle if !attribute.isAssociation()
-				entityType = metamodel.entity(attribute.getJavaType());
+				if (!attribute.isAssociation() && !attribute.isCollection()) throw new EntityNotFoundException(
+					"association " + requiredAssociationValue + " does not exist for base type" + entityType.getName());
+				if (attribute.isCollection()) {
+					Root<?> pathRoot = criteriaQuery.from(entityType);
+					entityType = metamodel.entity(((PluralAttribute) attribute).getBindableJavaType());
+					path = pathRoot.join(attributeName);
+				} else entityType = metamodel.entity(attribute.getJavaType());
 			}
 
 			idType = entityType.getIdType();
@@ -298,8 +306,10 @@ public class SecureEntityManager implements EntityManager {
 
 			// TODO handle subject == null
 			predicate2 = builder.equal(path.get(idAttr.getName()), principal);
+			
 		}
 
+		// predicate1 is for finding the entity itself in case entityId was given as an argument or deduced
 		Predicate predicate1 = null;
 		if (entityId != null) {
 			idType = entityType.getIdType();

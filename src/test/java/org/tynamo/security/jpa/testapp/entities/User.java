@@ -5,7 +5,7 @@ import javax.persistence.Id;
 
 import org.tynamo.security.jpa.annotations.RequiresAssociation;
 
-@RequiresAssociation("owner")
+@RequiresAssociation
 @Entity
 public class User {
 
