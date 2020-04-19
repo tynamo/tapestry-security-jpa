@@ -360,9 +360,20 @@ public class SecureEntityManager implements EntityManager {
 			String[] associationAttributes = String.valueOf(requiredAssociationValue).split("\\.");
 			for (String attributeName : associationAttributes) {
 				Attribute attribute = entityType.getAttribute(attributeName);
-				// TODO handle if !attribute.isAssociation()
-				entityType = metamodel.entity(attribute.getJavaType());
-				associatedObject = propertyAccess.get(associatedObject, attributeName);
+
+				if (!attribute.isAssociation() && !attribute.isCollection()) throw new EntityNotFoundException(
+					"association " + requiredAssociationValue + " does not exist for base type" + entityType.getName());
+				// TODO we only support many-to-many relations as the top entity
+				if (attribute.isCollection()) {
+					// for collection attributes, the simplest, although not the most performant, approach
+					// is to query the principal entity, then break
+					entityType = metamodel.entity(((PluralAttribute) attribute).getBindableJavaType());
+					associatedObject = find(entityType.getJavaType(), getConfiguredPrincipal());
+					break;
+				} else {
+					entityType = metamodel.entity(attribute.getJavaType());
+					associatedObject = propertyAccess.get(associatedObject, attributeName);
+				}
 				if (associatedObject == null)
 					throw new EntitySecurityException("Subject for the required association is not set when executing "
 						+ writeOperation + " on instance '" + entity + "' of type " + entity.getClass().getSimpleName());
