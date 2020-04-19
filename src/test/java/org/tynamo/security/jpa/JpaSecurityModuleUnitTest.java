@@ -382,9 +382,6 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 		mockSubject("1");
 		interceptor.persist(event);
 		interceptor.getTransaction().commit();
-		//
-		// event = interceptor.find(Event.class, event.getId());
-		// assertNotNull(event);
 	}
 
 	@Entity(name = "RoleWriteProtectedEntity")
