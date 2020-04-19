@@ -208,7 +208,7 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 	}
 
 	@Test
-	public void findByAssociation() {
+	public void findTestEntityByAssociation() {
 		delegate.getTransaction().begin();
 		TestOwnerEntity owner = new TestOwnerEntity();
 		owner.setId(1L);
@@ -357,6 +357,34 @@ public class JpaSecurityModuleUnitTest extends IOCTestCase {
 		interceptor.getTransaction().begin();
 		interceptor.persist(player);
 		interceptor.getTransaction().commit();
+	}
+
+	@Test
+	public void persistEventProtectedByManyToManyAssociation() {
+		delegate.getTransaction().begin();
+
+		User manager = new User();
+		manager.setId("1");
+		delegate.persist(manager);
+
+		Event event = new Event();
+		event.setValue("testevent");
+		try {
+			interceptor.persist(event);
+		fail("Security exception wasn't thrown");
+		}
+		catch (EntitySecurityException e) {
+			// expected
+		}
+		List<User> managers = new ArrayList<User>();
+		managers.add(manager);
+		event.setManagers(managers);
+		mockSubject("1");
+		interceptor.persist(event);
+		interceptor.getTransaction().commit();
+		//
+		// event = interceptor.find(Event.class, event.getId());
+		// assertNotNull(event);
 	}
 
 	@Entity(name = "RoleWriteProtectedEntity")
