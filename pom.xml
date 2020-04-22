@@ -121,7 +121,7 @@
 		<dependency>
 			<groupId>org.tynamo</groupId>
 			<artifactId>tapestry-security</artifactId>
-			<version>0.6.2</version>
+			<version>0.7.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tynamo</groupId>
