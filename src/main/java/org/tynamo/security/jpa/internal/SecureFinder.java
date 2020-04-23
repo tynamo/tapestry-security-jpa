@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,13 +69,15 @@ public class SecureFinder {
 		String requiredRoleValue = RequiresAnnotationUtil.getRequiredRole(entityClass, Operation.READ);
 
 		if (requiredRoleValue != null && request.isUserInRole(requiredRoleValue))
-			return Stream.of(delegate.find(entityClass, entityId, lockMode, properties)).collect(Collectors.toList());
+			return Stream.of(delegate.find(entityClass, entityId, lockMode, properties)).filter(Objects::nonNull)
+				.collect(Collectors.toList());
 
 		if (requiredAssociationValue == null) {
 			// proceed as normal if there's neither RequiresRole nor RequiresAssociation, directly return null if role didn't match
 			if (requiredRoleValue != null) return Collections.emptyList();
 			if (entityId != null)
-				return Stream.of(delegate.find(entityClass, entityId, lockMode, properties)).collect(Collectors.toList());
+				return Stream.of(delegate.find(entityClass, entityId, lockMode, properties)).filter(Objects::nonNull)
+					.collect(Collectors.toList());
 			// even if assocation is not required for read, we can still use it to find the entity
 			RequiresAssociation annotation = entityClass.getAnnotation(RequiresAssociation.class);
 			if (annotation == null) return Collections.emptyList();
@@ -104,6 +107,9 @@ public class SecureFinder {
 			// entityId may be null when finding entity by association
 			if (entityId == null) entityId = principal;
 			else if (!entityId.equals(principal)) return Collections.emptyList();
+			// handle search to self as a special case. The can be at most one 
+			return Stream.of(delegate.find(entityClass, entityId, lockMode, properties)).filter(Objects::nonNull)
+				.collect(Collectors.toList());
 		} else {
 			String[] associationAttributes = String.valueOf(requiredAssociationValue).split("\\.");
 			Path<?> path = null;
