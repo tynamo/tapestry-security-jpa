@@ -1,6 +1,7 @@
 package org.tynamo.security.jpa.internal;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,17 +72,17 @@ public class SecureFinder {
 
 		if (requiredAssociationValue == null) {
 			// proceed as normal if there's neither RequiresRole nor RequiresAssociation, directly return null if role didn't match
-			if (requiredRoleValue != null) return null;
+			if (requiredRoleValue != null) return Collections.emptyList();
 			if (entityId != null)
 				return Stream.of(delegate.find(entityClass, entityId, lockMode, properties)).collect(Collectors.toList());
 			// even if assocation is not required for read, we can still use it to find the entity
 			RequiresAssociation annotation = entityClass.getAnnotation(RequiresAssociation.class);
-			if (annotation == null) return null;
+			if (annotation == null) return Collections.emptyList();
 			requiredAssociationValue = annotation.value();
 		}
 
 		// return immediately if user is guest
-		if (request.getRemoteUser() == null) return null;
+		if (request.getRemoteUser() == null) return Collections.emptyList();
 
 		CriteriaBuilder builder = delegate.getCriteriaBuilder();
 		CriteriaQuery<T> criteriaQuery = builder.createQuery(entityClass);
@@ -102,7 +103,7 @@ public class SecureFinder {
 			idType = entityType.getIdType();
 			// entityId may be null when finding entity by association
 			if (entityId == null) entityId = principal;
-			else if (!entityId.equals(principal)) return null;
+			else if (!entityId.equals(principal)) return Collections.emptyList();
 		} else {
 			String[] associationAttributes = String.valueOf(requiredAssociationValue).split("\\.");
 			Path<?> path = null;

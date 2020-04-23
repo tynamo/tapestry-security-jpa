@@ -265,7 +265,6 @@ public class SecureEntityManager implements EntityManager {
 			predicate1, entityClass,
 			entityId, lockMode,
 			properties);
-		if (results == null) return null;
 		if (results.size() > 1)
 			throw new NonUniqueResultException("More than a single result of type " + entityClass.getName() + " found for "
 				+ (entityId == null ? "association " + requiredAssociationValue : "id " + entityId));
