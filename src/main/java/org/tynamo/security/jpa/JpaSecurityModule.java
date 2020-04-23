@@ -2,10 +2,12 @@ package org.tynamo.security.jpa;
 
 import org.apache.tapestry5.ioc.MappedConfiguration;
 import org.apache.tapestry5.ioc.MethodAdviceReceiver;
+import org.apache.tapestry5.ioc.ServiceBinder;
 import org.apache.tapestry5.ioc.annotations.Advise;
 import org.apache.tapestry5.ioc.annotations.Autobuild;
 import org.apache.tapestry5.jpa.EntityManagerSource;
 import org.tynamo.security.jpa.internal.SecureEntityManagerSourceAdvice;
+import org.tynamo.security.jpa.services.AssociatedEntities;
 
 public class JpaSecurityModule {
 	// @Advise(serviceInterface = EntityManager.class)
@@ -45,6 +47,10 @@ public class JpaSecurityModule {
 	public static void secureEntityManager(final MethodAdviceReceiver receiver,
 		@Autobuild SecureEntityManagerSourceAdvice advice) throws SecurityException, NoSuchMethodException {
 		receiver.adviseMethod(receiver.getInterface().getMethod("create", new Class[] { String.class }), advice);
+	}
+
+	public static void bind(ServiceBinder binder) {
+		binder.bind(AssociatedEntities.class);
 	}
 
 	public static void contributeFactoryDefaults(MappedConfiguration<String, String> configuration) {

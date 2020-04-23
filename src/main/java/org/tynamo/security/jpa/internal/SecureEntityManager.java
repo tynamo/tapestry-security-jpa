@@ -20,7 +20,6 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
@@ -35,7 +34,6 @@ import org.apache.shiro.util.ThreadContext;
 import org.apache.tapestry5.ioc.services.PropertyAccess;
 import org.tynamo.security.jpa.EntitySecurityException;
 import org.tynamo.security.jpa.annotations.Operation;
-import org.tynamo.security.jpa.annotations.RequiresAssociation;
 import org.tynamo.security.services.SecurityService;
 
 public class SecureEntityManager implements EntityManager {
@@ -243,83 +241,31 @@ public class SecureEntityManager implements EntityManager {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private <T> T secureFind(Class<T> entityClass, Object entityId, LockModeType lockMode, Map<String, Object> properties) {
-		String requiredRoleValue = RequiresAnnotationUtil.getRequiredRole(entityClass, Operation.READ);
-
-		if (requiredRoleValue != null && request.isUserInRole(requiredRoleValue))
-			return delegate.find(entityClass, entityId, lockMode, properties);
-
+	private <T> T secureFind(Class<T> entityClass,
+		Object entityId,
+		LockModeType lockMode,
+		Map<String, Object> properties) {
 		String requiredAssociationValue = RequiresAnnotationUtil.getRequiredAssociation(entityClass, Operation.READ);
-
-		if (requiredAssociationValue == null) {
-			// proceed as normal if there's neither RequiresRole nor RequiresAssociation, directly return null if role didn't match
-			if (requiredRoleValue != null) return null;
-			if (entityId != null) return delegate.find(entityClass, entityId, lockMode, properties);
-			// even if assocation is not required for read, we can still use it to find the entity
-			RequiresAssociation annotation = entityClass.getAnnotation(RequiresAssociation.class);
-			if (annotation == null) return null;
-			requiredAssociationValue = annotation.value();
-		}
-
-		// return immediately if user is guest
-		if (request.getRemoteUser() == null) return null;
-
-		CriteriaBuilder builder = delegate.getCriteriaBuilder();
-		CriteriaQuery<Object> criteriaQuery = builder.createQuery();
-		Root<?> from = criteriaQuery.from(entityClass);
-		CriteriaQuery<Object> select = criteriaQuery.select(from);
-		Metamodel metamodel = delegate.getMetamodel();
-
-		EntityType entityType = metamodel.entity(entityClass);
-		Type idType;
-		SingularAttribute idAttr;
-		Predicate predicate2 = null;
-
-		Object principal = getConfiguredPrincipal();
-		// throw IllegalArgumentException below if idType doesn't match with principal's type
-
-		// empty string indicates association to "self"
-		if (requiredAssociationValue.isEmpty()) {
-			idType = entityType.getIdType();
-			// entityId may be null when finding entity by association
-			if (entityId == null) entityId = principal;
-			else if (!entityId.equals(principal)) return null;
-		} else {
-			String[] associationAttributes = String.valueOf(requiredAssociationValue).split("\\.");
-			Path<?> path = null;
-			
-			// find the type of the top entity while traversing the property path
-			for (String attributeName : associationAttributes) {
-				path = path == null ? from.get(attributeName) : path.get(attributeName);
-				Attribute attribute = entityType.getAttribute(attributeName);
-				if (!attribute.isAssociation() && !attribute.isCollection()) throw new EntityNotFoundException(
-					"association " + requiredAssociationValue + " does not exist for base type" + entityType.getName());
-				if (attribute.isCollection()) {
-					Root<?> pathRoot = criteriaQuery.from(entityType);
-					entityType = metamodel.entity(((PluralAttribute) attribute).getBindableJavaType());
-					path = pathRoot.join(attributeName);
-				} else entityType = metamodel.entity(attribute.getJavaType());
-			}
-
-			idType = entityType.getIdType();
-			idAttr = entityType.getId(idType.getJavaType());
-
-			// TODO handle subject == null
-			predicate2 = builder.equal(path.get(idAttr.getName()), principal);
-			
-		}
-
 		// predicate1 is for finding the entity itself in case entityId was given as an argument or deduced
+		EntityType entityType = delegate.getMetamodel().entity(entityClass);
 		Predicate predicate1 = null;
+
 		if (entityId != null) {
-			idType = entityType.getIdType();
-			idAttr = entityType.getId(idType.getJavaType());
+			Type idType = entityType.getIdType();
+			SingularAttribute idAttr = entityType.getId(idType.getJavaType());
+			CriteriaBuilder builder = delegate.getCriteriaBuilder();
+			CriteriaQuery<T> criteriaQuery = builder.createQuery(entityClass);
+			Root<T> from = criteriaQuery.from(entityClass);
 			predicate1 = builder.equal(from.get(idAttr.getName()), entityId);
 		}
-		criteriaQuery.where(predicate1 == null ? predicate2 : predicate2 == null ? predicate1 : builder.and(predicate1,
-			predicate2));
 		// getSingleResult throws an exception if no results are found, so get the list instead
-		List results = delegate.createQuery(criteriaQuery).getResultList();
+		List results = SecureFinder.find(delegate, request,
+			SecureFinder.getConfiguredPrincipal(securityService, realmName, principalType),
+			requiredAssociationValue,
+			predicate1, entityClass,
+			entityId, lockMode,
+			properties);
+		if (results == null) return null;
 		if (results.size() > 1)
 			throw new NonUniqueResultException("More than a single result of type " + entityClass.getName() + " found for "
 				+ (entityId == null ? "association " + requiredAssociationValue : "id " + entityId));
