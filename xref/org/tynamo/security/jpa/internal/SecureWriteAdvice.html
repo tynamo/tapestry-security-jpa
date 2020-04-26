@@ -24,13 +24,13 @@
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.tynamo.security.services.SecurityService;
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  @Deprecated
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/tynamo/security/jpa/internal/SecureWriteAdvice.html">SecureWriteAdvice</a> <strong class="jxr_keyword">implements</strong> MethodAdvice {
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="SecureWriteAdvice" href="../../../../../org/tynamo/security/jpa/internal/SecureWriteAdvice.html#SecureWriteAdvice">SecureWriteAdvice</a> <strong class="jxr_keyword">implements</strong> MethodAdvice {
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> SecurityService securityService;
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> HttpServletRequest request;
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> PropertyAccess propertyAccess;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../../org/tynamo/security/jpa/annotations/Operation.html">Operation</a> writeOperation;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="Operation" href="../../../../../org/tynamo/security/jpa/annotations/Operation.html#Operation">Operation</a> writeOperation;
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../../org/tynamo/security/jpa/internal/SecureWriteAdvice.html">SecureWriteAdvice</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../../org/tynamo/security/jpa/annotations/Operation.html">Operation</a> writeOperation, <strong class="jxr_keyword">final</strong> SecurityService securityService,
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  	<strong class="jxr_keyword">public</strong> <a name="SecureWriteAdvice" href="../../../../../org/tynamo/security/jpa/internal/SecureWriteAdvice.html#SecureWriteAdvice">SecureWriteAdvice</a>(<strong class="jxr_keyword">final</strong> <a name="Operation" href="../../../../../org/tynamo/security/jpa/annotations/Operation.html#Operation">Operation</a> writeOperation, <strong class="jxr_keyword">final</strong> SecurityService securityService,
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  		<strong class="jxr_keyword">final</strong> HttpServletRequest request, <strong class="jxr_keyword">final</strong> PropertyAccess propertyAccess) {
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  		<strong class="jxr_keyword">if</strong> (!Operation.INSERT.equals(writeOperation) &amp;&amp; !Operation.UPDATE.equals(writeOperation)
 <a class="jxr_linenumber" name="L28" href="#L28">28</a>  			&amp;&amp; !Operation.DELETE.equals(writeOperation))
@@ -58,7 +58,7 @@
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>  		<strong class="jxr_keyword">if</strong> (requiredAssociationValue == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>  			<em class="jxr_comment">// proceed as normal if there's neither RequiresRole nor RequiresAssociation, throw an exception if role didn't match</em>
 <a class="jxr_linenumber" name="L52" href="#L52">52</a>  			<strong class="jxr_keyword">if</strong> (requiredRoleValue == <strong class="jxr_keyword">null</strong>) invocation.proceed();
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  			<strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/tynamo/security/jpa/EntitySecurityException.html">EntitySecurityException</a>(<span class="jxr_string">"Currently executing subject is not permitted to "</span> + writeOperation
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  			<strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a name="EntitySecurityException" href="../../../../../org/tynamo/security/jpa/EntitySecurityException.html#EntitySecurityException">EntitySecurityException</a>(<span class="jxr_string">"Currently executing subject is not permitted to "</span> + writeOperation
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>  				+ <span class="jxr_string">" entities of type "</span> + entity.getClass().getSimpleName());
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>  		}
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>  		EntityManager entityManager = (EntityManager) invocation.getInstance();
@@ -73,7 +73,7 @@
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  		Type idType = entityType.getIdType();
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>  		SingularAttribute idAttr = entityType.getId(idType.getJavaType());
 <a class="jxr_linenumber" name="L67" href="#L67">67</a>  		<strong class="jxr_keyword">if</strong> (!propertyAccess.get(associatedObject, idAttr.getName()).equals(
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  			securityService.getSubject().getPrincipals().getPrimaryPrincipal())) { <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> EntitySecurityException(
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  			securityService.getSubject().getPrincipals().getPrimaryPrincipal())) { <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a name="EntitySecurityException" href="../../../../../org/tynamo/security/jpa/EntitySecurityException.html#EntitySecurityException">EntitySecurityException</a>(
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>  			<span class="jxr_string">"Currently executing subject is not permitted to "</span> + writeOperation + <span class="jxr_string">" entities of type "</span>
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>  				+ entity.getClass().getSimpleName() + <span class="jxr_string">" because the required association didn't exist"</span>); }
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>  		invocation.proceed();
@@ -81,6 +81,6 @@
 <a class="jxr_linenumber" name="L73" href="#L73">73</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2004&#x2013;2015. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2004&#x2013;2020. All rights reserved.</div>
 </body>
 </html>

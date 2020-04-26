@@ -9,18 +9,62 @@
 <pre><span class="sourceLineNo">001</span>package org.tynamo.security.jpa.services;<a name="line.1"></a>
 <span class="sourceLineNo">002</span><a name="line.2"></a>
 <span class="sourceLineNo">003</span>import java.util.List;<a name="line.3"></a>
-<span class="sourceLineNo">004</span><a name="line.4"></a>
-<span class="sourceLineNo">005</span>import javax.persistence.EntityManager;<a name="line.5"></a>
-<span class="sourceLineNo">006</span><a name="line.6"></a>
-<span class="sourceLineNo">007</span>public class AssociatedEntitiesImpl implements AssociatedEntities {<a name="line.7"></a>
+<span class="sourceLineNo">004</span>import java.util.concurrent.Callable;<a name="line.4"></a>
+<span class="sourceLineNo">005</span><a name="line.5"></a>
+<span class="sourceLineNo">006</span>import javax.persistence.EntityManager;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import javax.servlet.http.HttpServletRequest;<a name="line.7"></a>
 <span class="sourceLineNo">008</span><a name="line.8"></a>
-<span class="sourceLineNo">009</span>        @Override<a name="line.9"></a>
-<span class="sourceLineNo">010</span>        public List&lt;?&gt; findAll(EntityManager em, Class&lt;?&gt; entityClass) {<a name="line.10"></a>
-<span class="sourceLineNo">011</span>                // TODO Auto-generated method stub<a name="line.11"></a>
-<span class="sourceLineNo">012</span>                return null;<a name="line.12"></a>
-<span class="sourceLineNo">013</span>        }<a name="line.13"></a>
-<span class="sourceLineNo">014</span><a name="line.14"></a>
-<span class="sourceLineNo">015</span>}<a name="line.15"></a>
+<span class="sourceLineNo">009</span>import org.apache.tapestry5.ioc.annotations.Inject;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.apache.tapestry5.ioc.annotations.Symbol;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.tynamo.security.jpa.JpaSecuritySymbols;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.tynamo.security.jpa.annotations.Operation;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.tynamo.security.jpa.internal.RequiresAnnotationUtil;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.tynamo.security.jpa.internal.SecureFinder;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.tynamo.security.services.SecurityService;<a name="line.15"></a>
+<span class="sourceLineNo">016</span><a name="line.16"></a>
+<span class="sourceLineNo">017</span>public class AssociatedEntitiesImpl implements AssociatedEntities {<a name="line.17"></a>
+<span class="sourceLineNo">018</span>        private final EntityManager delegate;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>        private final SecurityService securityService;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>        private final HttpServletRequest request;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>        private String realmName;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>        private Class&lt;?&gt; principalType;<a name="line.22"></a>
+<span class="sourceLineNo">023</span><a name="line.23"></a>
+<span class="sourceLineNo">024</span>        public AssociatedEntitiesImpl(<a name="line.24"></a>
+<span class="sourceLineNo">025</span>                final SecurityService securityService,<a name="line.25"></a>
+<span class="sourceLineNo">026</span>                final HttpServletRequest request, final EntityManager delegate,<a name="line.26"></a>
+<span class="sourceLineNo">027</span>                @Inject @Symbol(JpaSecuritySymbols.ASSOCIATED_REALM) String realmName,<a name="line.27"></a>
+<span class="sourceLineNo">028</span>                @Inject @Symbol(JpaSecuritySymbols.ASSOCIATED_PRINCIPALTYPE) String principalType) throws ClassNotFoundException {<a name="line.28"></a>
+<span class="sourceLineNo">029</span>                this.securityService = securityService;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>                this.request = request;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>                this.delegate = delegate;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>                this.realmName = realmName;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>                this.principalType = principalType.isEmpty() ? null : Class.forName(principalType);<a name="line.33"></a>
+<span class="sourceLineNo">034</span>        }<a name="line.34"></a>
+<span class="sourceLineNo">035</span><a name="line.35"></a>
+<span class="sourceLineNo">036</span>        @Override<a name="line.36"></a>
+<span class="sourceLineNo">037</span>        public &lt;T&gt; List&lt;T&gt; findAll(EntityManager em, Class&lt;T&gt; entityClass) throws Exception {<a name="line.37"></a>
+<span class="sourceLineNo">038</span>                String requiredAssociationValue = RequiresAnnotationUtil.getRequiredAssociation(entityClass, Operation.READ);<a name="line.38"></a>
+<span class="sourceLineNo">039</span><a name="line.39"></a>
+<span class="sourceLineNo">040</span>                // return SecureFinder.find(delegate, request, SecureFinder.getConfiguredPrincipal(securityService,<a name="line.40"></a>
+<span class="sourceLineNo">041</span>                // realmName,<a name="line.41"></a>
+<span class="sourceLineNo">042</span>                // principalType),<a name="line.42"></a>
+<span class="sourceLineNo">043</span>                // requiredAssociationValue, null, entityClass,<a name="line.43"></a>
+<span class="sourceLineNo">044</span>                // null, null, null);<a name="line.44"></a>
+<span class="sourceLineNo">045</span>                <a name="line.45"></a>
+<span class="sourceLineNo">046</span>                Object principal = SecureFinder.getConfiguredPrincipal(securityService, realmName, principalType);<a name="line.46"></a>
+<span class="sourceLineNo">047</span>                // invoke with security disabled so we don't go to a recursion with em.find()<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                return securityService.invokeWithSecurityDisabled(new Callable&lt;List&lt;T&gt;&gt;() {<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                        @Override<a name="line.49"></a>
+<span class="sourceLineNo">050</span>                        public List&lt;T&gt; call() {<a name="line.50"></a>
+<span class="sourceLineNo">051</span>                                return SecureFinder.find(delegate, request, principal,<a name="line.51"></a>
+<span class="sourceLineNo">052</span>                                        requiredAssociationValue,<a name="line.52"></a>
+<span class="sourceLineNo">053</span>                                        null, entityClass, null, null, null);<a name="line.53"></a>
+<span class="sourceLineNo">054</span>                        }<a name="line.54"></a>
+<span class="sourceLineNo">055</span>                });<a name="line.55"></a>
+<span class="sourceLineNo">056</span>                <a name="line.56"></a>
+<span class="sourceLineNo">057</span>        }<a name="line.57"></a>
+<span class="sourceLineNo">058</span><a name="line.58"></a>
+<span class="sourceLineNo">059</span>}<a name="line.59"></a>
 
 
 
