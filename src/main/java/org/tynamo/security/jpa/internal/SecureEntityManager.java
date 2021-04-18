@@ -31,7 +31,7 @@ import javax.persistence.metamodel.Type;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.shiro.util.ThreadContext;
-import org.apache.tapestry5.ioc.services.PropertyAccess;
+import org.apache.tapestry5.commons.services.PropertyAccess;
 import org.tynamo.security.jpa.EntitySecurityException;
 import org.tynamo.security.jpa.annotations.Operation;
 import org.tynamo.security.services.SecurityService;

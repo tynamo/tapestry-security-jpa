@@ -4,12 +4,12 @@ import java.sql.SQLException;
 
 import org.apache.shiro.realm.Realm;
 import org.apache.tapestry5.SymbolConstants;
-import org.apache.tapestry5.ioc.Configuration;
-import org.apache.tapestry5.ioc.MappedConfiguration;
-import org.apache.tapestry5.ioc.OrderedConfiguration;
+import org.apache.tapestry5.commons.Configuration;
+import org.apache.tapestry5.commons.MappedConfiguration;
+import org.apache.tapestry5.commons.OrderedConfiguration;
 import org.apache.tapestry5.ioc.ServiceBinder;
+import org.apache.tapestry5.ioc.annotations.ImportModule;
 import org.apache.tapestry5.ioc.annotations.Startup;
-import org.apache.tapestry5.ioc.annotations.SubModule;
 import org.apache.tapestry5.ioc.annotations.Symbol;
 import org.tynamo.security.jpa.EntitySecurityException;
 import org.tynamo.security.jpa.JpaSecurityModule;
@@ -23,7 +23,7 @@ import org.tynamo.shiro.extension.realm.text.ExtendedPropertiesRealm;
  * This module is automatically included as part of the Tapestry IoC Registry, it's a good place to configure and extend Tapestry, or to
  * place your own service definitions.
  */
-@SubModule(JpaSecurityModule.class)
+@ImportModule(JpaSecurityModule.class)
 public class AppModule {
 
 	public static void bind(ServiceBinder binder) {

@@ -5,9 +5,9 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.tapestry5.commons.Resource;
+import org.apache.tapestry5.commons.services.PropertyAccess;
 import org.apache.tapestry5.internal.jpa.EntityManagerSourceImpl;
-import org.apache.tapestry5.ioc.Resource;
-import org.apache.tapestry5.ioc.services.PropertyAccess;
 import org.apache.tapestry5.jpa.PersistenceUnitConfigurer;
 import org.slf4j.Logger;
 import org.tynamo.security.services.SecurityService;

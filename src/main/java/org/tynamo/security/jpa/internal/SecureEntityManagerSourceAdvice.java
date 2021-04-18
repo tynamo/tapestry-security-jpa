@@ -3,9 +3,9 @@ package org.tynamo.security.jpa.internal;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.tapestry5.commons.services.PropertyAccess;
 import org.apache.tapestry5.ioc.annotations.Inject;
 import org.apache.tapestry5.ioc.annotations.Symbol;
-import org.apache.tapestry5.ioc.services.PropertyAccess;
 import org.apache.tapestry5.plastic.MethodAdvice;
 import org.apache.tapestry5.plastic.MethodInvocation;
 import org.tynamo.security.jpa.JpaSecuritySymbols;
